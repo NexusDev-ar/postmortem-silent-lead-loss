@@ -45,9 +45,22 @@ Persist before notifying. Any design where the record of an event exists
 only in a message is a design where the event can vanish. If I cannot
 name where the row lands, the feature is not finished.
 
+## The notification path, one bug later
+The notification no longer depends on the visitor at all. It is sent
+server-side from `/api/lead` after the row is written, and a failure to
+notify can no longer be silent: every failed send is logged at error
+level with the full lead in the same line, so the record exists twice.
+
+That path had one more lesson in it. The provider answers `200` even
+when it rejects the request, so `r.ok` is not a success signal; the
+response body has to be read and checked. A success code that isn't one
+is the same class of bug as the original — something reporting that it
+worked when it didn't.
+
 ## Still open
-- The WhatsApp notification path is not yet verified end to end in
-  production. Until it is, the database is the only source I trust.
+- Whether a notification actually arrives on my phone is still confirmed
+  by noticing it, not by anything automated. The database remains the
+  source I trust.
 - No deduplication: a visitor who submits twice creates two rows.
 - No alerting on an empty day, which is the exact condition that hid the
   original bug.
